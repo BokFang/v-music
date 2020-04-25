@@ -17,7 +17,7 @@ export default {
   },
   methods: {
     emitClick(e) {
-      this.$emit('click', e)
+      this.$emit("click", e);
     }
   }
 };
