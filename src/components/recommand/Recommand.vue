@@ -59,7 +59,6 @@ export default {
         .get("http://localhost:3000/top/playlist")
         .then(response => {
           this.disList = response.data.playlists;
-          console.log(this.disList);
         })
         .catch(error => {
           console.log(error);

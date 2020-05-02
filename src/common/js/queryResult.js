@@ -1,8 +1,8 @@
 class Result {
-  constructor({artists, playlists, songs}) {
-    artists && (this.artists = artists)
-    playlists && (this.playlists = playlists)
-    this.songs = songs
+  constructor({ artists, playlists, songs }) {
+    artists && (this.artists = artists);
+    playlists && (this.playlists = playlists);
+    this.songs = songs;
   }
 }
 
@@ -12,5 +12,5 @@ export function createResult(data) {
     playlists: data[0].playlists,
     songs: data[1].songs
   }
-  return new Result(res)
+  return new Result(res);
 }

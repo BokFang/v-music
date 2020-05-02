@@ -7,12 +7,18 @@ const routes = [
   {
     name: "recommand",
     path: "/recommand",
-    component: () => import("../components/Recommand")
+    component: () => import("../components/recommand/Recommand")
   },
   {
     name: "singer",
     path: "/singer",
-    component: () => import("../components/Singer")
+    component: () => import("../components/singer/Singer"),
+    children: [
+      {
+        path: ":id",
+        component: () => import("../components/singer/SingerDetail")
+      }
+    ]
   },
   {
     path: "*",

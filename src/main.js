@@ -15,7 +15,7 @@ fastclick.attach(document.body);
 
 Vue.use(VueLazyload, {
   error: require("./common/images/wyy.png"),
-  loading: require("./common/images/wyy.png"),
+  loading: require("./common/images/wyy.png")
 });
 
 new Vue({
