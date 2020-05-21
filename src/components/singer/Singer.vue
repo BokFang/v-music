@@ -9,19 +9,17 @@
       </div>
     </header>
     <div class="singer-list">
-      <ul>
-        <li
-          v-for="(item, index) in singerList"
-          :key="index"
-          @click="toSingerDetail(item)"
-        >
-          <div class="singer-information">
-            <img v-lazy="item.img1v1Url" alt="image" />
-            <span class="list-name">{{ item.name }}</span>
-          </div>
-          <span class="follow">+ 关注</span>
-        </li>
-      </ul>
+      <scroll class="wrapper" :data="singerList">
+        <ul>
+          <li v-for="(item, index) in singerList" :key="index" @click="toSingerDetail(item)">
+            <div class="singer-information">
+              <img v-lazy="item.img1v1Url" alt="image" />
+              <span class="list-name">{{ item.name }}</span>
+            </div>
+            <span class="follow">+ 关注</span>
+          </li>
+        </ul>
+      </scroll>
     </div>
     <transition name="slide-fade">
       <router-view></router-view>
@@ -31,12 +29,16 @@
 
 <script>
 import { mapMutations } from "vuex";
+import Scroll from "../../base/Scroll";
 
 export default {
   data() {
     return {
       singerList: []
     };
+  },
+  components: {
+    Scroll
   },
   methods: {
     getSingerList() {
@@ -72,6 +74,8 @@ export default {
 @include slide;
 
 header {
+  height: 10vh;
+  margin-bottom: 28px;
   .top {
     font-size: 54px;
     margin: 20px 0;
@@ -85,6 +89,17 @@ header {
   }
 }
 .singer-list {
+  display: flex;
+  justify-content: center;
+  .wrapper {
+    position: fixed;
+    top: 20vh;
+    bottom: 0;
+    box-sizing: border-box;
+    overflow: hidden;
+    width: 100%;
+    padding: 0 45px;
+  }
   li {
     display: flex;
     justify-content: space-between;

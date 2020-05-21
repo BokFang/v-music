@@ -1,28 +1,31 @@
 <template>
-  <div id="recommand">
-    <div class="content">
-      <div class="swiper">
-        <swiper ref="mySwiper" :options="swiperOptions">
-          <swiper-slide v-for="(item, index) in banners" :key="index">
-            <img :src="item.imageUrl" alt="image" />
-          </swiper-slide>
-          <div class="swiper-pagination" slot="pagination"></div>
-        </swiper>
+  <div id="recommand" class="recommand">
+    <scroll class="wrapper" :data="disList" :probe-type="3">
+      <div class="content" ref="content">
+        <div class="swiper">
+          <swiper ref="mySwiper" :options="swiperOptions">
+            <swiper-slide v-for="(item, index) in banners" :key="index">
+              <img :src="item.imageUrl" alt="image" />
+            </swiper-slide>
+            <div class="swiper-pagination" slot="pagination"></div>
+          </swiper>
+        </div>
+        <h3>推荐歌单</h3>
+        <ul class="playlist">
+          <li v-for="(item, index) in disList" :key="index">
+            <img v-lazy="item.coverImgUrl" alt="image" />
+            <p>{{ item.name }}</p>
+          </li>
+        </ul>
       </div>
-      <h3>推荐歌单</h3>
-      <ul class="playlist">
-        <li v-for="(item, index) in disList" :key="index">
-          <img v-lazy="item.coverImgUrl" alt="image" />
-          <p>{{ item.name }}</p>
-        </li>
-      </ul>
-    </div>
+    </scroll>
   </div>
 </template>
 
 <script>
 import { Swiper, SwiperSlide } from "vue-awesome-swiper";
 import "swiper/css/swiper.css";
+import Scroll from "../../base/Scroll";
 
 export default {
   name: "Recommand",
@@ -41,7 +44,8 @@ export default {
   },
   components: {
     Swiper,
-    SwiperSlide
+    SwiperSlide,
+    Scroll
   },
   methods: {
     getPlaylistData() {
@@ -73,7 +77,7 @@ export default {
   mounted() {
     this.swiper.slideTo(3, 1000, false);
   },
-  beforeMount() {
+  created() {
     this.getPlaylistData();
     this.getPlaylistsData();
   }
@@ -86,6 +90,19 @@ export default {
 
 html {
   touch-action: none;
+}
+.recommand {
+  display: flex;
+  justify-content: center;
+}
+.wrapper {
+  position: fixed;
+  top: 10vh;
+  bottom: 0;
+  width: 100%;
+  padding: 0 45px;
+  box-sizing: border-box;
+  overflow: hidden;
 }
 .swiper {
   img {

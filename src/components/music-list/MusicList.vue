@@ -1,6 +1,6 @@
 <template>
   <div class="music-list">
-    <div class="header" :style="bgStyle">
+    <div class="header" :style="bgStyle" ref="bgImage">
       <div class="top">
         <svg class="icon back" aria-hidden="true" @click="back">
           <use xlink:href="#icon-back" />
@@ -10,12 +10,30 @@
         </svg>
       </div>
     </div>
-    <song-list :songs="songs"></song-list>
+    <scroll :data="songs" class="wrapper" ref="list">
+      <div>
+        <div class="playAll">
+          <svg class="icon play" aria-hidden="true">
+            <use xlink:href="#icon-play" />
+          </svg>
+          <span>播放热门歌曲</span>
+        </div>
+        <song-list
+          v-for="(song, index) in songs"
+          :key="index"
+          :song="song.name"
+          :index="index"
+          :artist="song.artist"
+          :album="song.album"
+        ></song-list>
+      </div>
+    </scroll>
   </div>
 </template>
 
 <script>
 import SongList from "../../base/SongList";
+import Scroll from "../../base/Scroll";
 
 export default {
   props: {
@@ -29,11 +47,17 @@ export default {
   data() {
     return {};
   },
-  components: { SongList },
+  components: {
+    SongList,
+    Scroll
+  },
   methods: {
     back() {
       this.$router.go(-1);
     }
+  },
+  mounted() {
+    this.$refs.list.$el.style.top = `${this.$refs.bgImage.clientHeight}px`;
   },
   computed: {
     bgStyle() {
@@ -54,8 +78,16 @@ export default {
   left: 0;
   right: 0;
   bottom: 0;
-  background-color: $color-background-d;
+  background-color: #fff;
 
+  .wrapper {
+    position: fixed;
+    bottom: 0;
+    width: 100%;
+    padding: 0 45px;
+    box-sizing: border-box;
+    overflow: hidden;
+  }
   .header {
     width: 100%;
     padding: 70% 45px 0 45px;
@@ -80,6 +112,15 @@ export default {
         top: 0;
         right: 54px;
       }
+    }
+  }
+
+  .playAll {
+    font-size: 54px;
+    padding: 60px 0 72px 40px;
+
+    .play {
+      padding-right: 20px;
     }
   }
 }
