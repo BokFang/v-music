@@ -1,3 +1,3 @@
-const mode = ['sequence', 'loop', 'random']
+const mode = ["sequence", "loop", "random"];
 
-export default mode
+export default mode;

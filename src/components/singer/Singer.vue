@@ -11,7 +11,11 @@
     <div class="singer-list">
       <scroll class="wrapper" :data="singerList">
         <ul>
-          <li v-for="(item, index) in singerList" :key="index" @click="toSingerDetail(item)">
+          <li
+            v-for="(item, index) in singerList"
+            :key="index"
+            @click="toSingerDetail(item)"
+          >
             <div class="singer-information">
               <img v-lazy="item.img1v1Url" alt="image" />
               <span class="list-name">{{ item.name }}</span>

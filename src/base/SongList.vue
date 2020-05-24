@@ -1,5 +1,5 @@
 <template>
-  <div class="song-list">
+  <div class="song-list" @click="selectSong(index, song)">
     <span class="num">{{ index + 1 }}</span>
     <main>
       <p class="song-name">{{ song }}</p>
@@ -37,6 +37,11 @@ export default {
     showId: {
       type: Boolean,
       default: true
+    }
+  },
+  methods: {
+    selectSong(index, song) {
+      this.$emit("select", song, index);
     }
   }
 };

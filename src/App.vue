@@ -6,15 +6,18 @@
         <router-view></router-view>
       </keep-alive>
     </transition>
+    <player></player>
   </div>
 </template>
 
 <script type="text/ecmascript-6">
 import Header from "./components/header/Header";
+import Player from "./components/player/Player";
 
 export default {
   components: {
-    Header
+    Header,
+    Player
   }
 };
 </script>

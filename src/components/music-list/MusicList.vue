@@ -10,7 +10,15 @@
         </svg>
       </div>
     </div>
-    <scroll :data="songs" class="wrapper" ref="list">
+    <div class="bg-layer" ref="layer"></div>
+    <scroll
+      @scroll="listenToScroll"
+      :data="songs"
+      class="wrapper"
+      ref="list"
+      :probe-type="3"
+      :listen-scroll="true"
+    >
       <div>
         <div class="playAll">
           <svg class="icon play" aria-hidden="true">
@@ -19,6 +27,7 @@
           <span>播放热门歌曲</span>
         </div>
         <song-list
+          @select="selectSong"
           v-for="(song, index) in songs"
           :key="index"
           :song="song.name"
@@ -34,6 +43,7 @@
 <script>
 import SongList from "../../base/SongList";
 import Scroll from "../../base/Scroll";
+import { mapActions } from "vuex";
 
 export default {
   props: {
@@ -45,7 +55,9 @@ export default {
     }
   },
   data() {
-    return {};
+    return {
+      scrollY: 0
+    };
   },
   components: {
     SongList,
@@ -54,6 +66,23 @@ export default {
   methods: {
     back() {
       this.$router.go(-1);
+    },
+    listenToScroll(pos) {
+      this.scrollY = pos.y;
+      console.log(this.scrollY);
+    },
+    selectSong(song, index) {
+      this.selectPlay({
+        list: this.songs,
+        index
+      });
+    },
+    ...mapActions(["selectPlay"])
+  },
+  watch: {
+    scrollY(newY) {
+      this.$refs.layer.style["transform"] = `translate3d(0,${newY}px,0)`;
+      this.$refs.layer.style["webkitTransform"] = `translate3d(0,${newY}px,0)`;
     }
   },
   mounted() {
@@ -78,22 +107,36 @@ export default {
   left: 0;
   right: 0;
   bottom: 0;
-  background-color: #fff;
+  z-index: 100;
+  background-color: $color-background;
 
   .wrapper {
     position: fixed;
+    top: 0;
     bottom: 0;
     width: 100%;
-    padding: 0 45px;
     box-sizing: border-box;
+    z-index: 30;
     overflow: hidden;
   }
+
+  .bg-layer {
+    background: $color-background;
+    position: relative;
+    height: 100%;
+    will-change: transform;
+    border-top-left-radius: 40px;
+    border-top-right-radius: 40px;
+    z-index: 20;
+  }
+
   .header {
     width: 100%;
     padding: 70% 45px 0 45px;
     background-size: cover;
     font-size: $font-size-medium-x;
     box-sizing: border-box;
+    z-index: 10;
 
     .top {
       width: 100%;
