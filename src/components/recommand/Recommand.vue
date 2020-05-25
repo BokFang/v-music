@@ -60,7 +60,7 @@ export default {
     },
     getPlaylistsData() {
       this.$http
-        .get("http://localhost:3000/top/playlist")
+        .get("http://49.233.137.79:4000/top/playlist")
         .then(response => {
           this.disList = response.data.playlists;
         })

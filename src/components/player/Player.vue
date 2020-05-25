@@ -12,26 +12,17 @@
               <use xlink:href="#icon-back" />
             </svg>
           </div>
-          <div>
+          <div class="detail">
             <h1 class="song-name">{{ currentSong.name }}</h1>
             <h2 class="singer-name">{{ currentSong.artist }}</h2>
           </div>
         </header>
         <main class="main" v-show="currentShow === 'cd'">
           <div class="needle">
-            <img
-              src="../../common/images/needle.png"
-              alt="image"
-              :class="needlePlayClass"
-            />
+            <img src="../../common/images/needle.png" alt="image" :class="needlePlayClass" />
           </div>
           <div class="wrapper">
-            <img
-              :src="currentSong.albumPic"
-              :class="rotateClass"
-              class="rotate"
-              alt
-            />
+            <img :src="currentSong.albumPic" :class="rotateClass" class="rotate" alt />
           </div>
         </main>
         <div class="control">
@@ -40,13 +31,13 @@
             <svg class="icon" aria-hidden="true">
               <use xlink:href="#icon-cycle" />
             </svg>
-            <svg class="icon" aria-hidden="true">
+            <svg class="icon" aria-hidden="true" @click="preSong">
               <use xlink:href="#icon-pre-song" />
             </svg>
             <svg class="icon play" aria-hidden="true" @click="togglePlaying">
               <use :xlink:href="playIcon" />
             </svg>
-            <svg class="icon" aria-hidden="true">
+            <svg class="icon" aria-hidden="true" @click="nextSong">
               <use xlink:href="#icon-next-song" />
             </svg>
             <svg class="icon" aria-hidden="true">
@@ -83,6 +74,8 @@
       :src="
         `https://music.163.com/song/media/outer/url?id=${currentSong.id}.mp3`
       "
+      @canplay="ready"
+      @error="error"
     ></audio>
   </div>
 </template>
@@ -94,7 +87,8 @@ export default {
   name: "",
   data() {
     return {
-      currentShow: "cd" //当前展示：cd/歌词
+      currentShow: "cd", //当前展示：cd/歌词
+      songReady: "false" //歌曲是否准备好
     };
   },
   computed: {
@@ -115,7 +109,8 @@ export default {
       "playList",
       "currentSong",
       "singer",
-      "playing"
+      "playing",
+      "currentIndex"
     ])
   },
   watch: {
@@ -134,7 +129,8 @@ export default {
   methods: {
     ...mapMutations({
       _setFullScreen: "SET_FULL_SCREEN",
-      _setPlayingState: "SET_PLAYING_STATE"
+      _setPlayingState: "SET_PLAYING_STATE",
+      _setCurrentIndex: "SET_CURRENT_INDEX"
     }),
     back() {
       this._setFullScreen(false);
@@ -144,6 +140,45 @@ export default {
     },
     togglePlaying() {
       this._setPlayingState(!this.playing);
+    },
+    preSong() {
+      if (!this.songReady) {
+        return;
+      }
+      let index = this.currentIndex - 1;
+      if (index === -1) {
+        index = this.playList.length - 1;
+      }
+      this._setCurrentIndex(index);
+      if (!this.playing) {
+        this.togglePlaying();
+      }
+      this.songReady = false;
+    },
+    nextSong() {
+      if (!this.songReady) {
+        return;
+      }
+      let index = this.currentIndex + 1;
+      if (index === this.playList.length) {
+        index = 0;
+      }
+      this._setCurrentIndex(index);
+      if (!this.playing) {
+        this.togglePlaying();
+      }
+      this.songReady = false;
+    },
+    ready() {
+      this.songReady = true;
+    },
+    error() {
+      if (!this.playing) {
+        return;
+      }
+      this.songReady = true;
+      alert("该歌曲暂时无法播放！");
+      this.nextSong();
     }
   }
 };
@@ -239,19 +274,24 @@ export default {
       .back {
         width: 14%;
       }
-      .song-name {
-        font-weight: 400;
-        color: #fff;
-        font-size: 54px;
-        padding-bottom: 40px;
-        overflow: hidden;
-        text-overflow: ellipsis;
-        white-space: nowrap;
-      }
-      .singer-name {
-        font-size: 48px;
-        color: #c8c8c8;
-        font-weight: normal;
+      .detail {
+        box-sizing: border-box;
+        width: 80%;
+        padding-right: 60px;
+        .song-name {
+          font-weight: 400;
+          color: #fff;
+          font-size: 54px;
+          padding-bottom: 40px;
+          overflow: hidden;
+          text-overflow: ellipsis;
+          white-space: nowrap;
+        }
+        .singer-name {
+          font-size: 48px;
+          color: #c8c8c8;
+          font-weight: normal;
+        }
       }
     }
     .main {

@@ -47,7 +47,7 @@ export default {
   methods: {
     getSingerList() {
       this.$http
-        .get("http://localhost:3000/top/artists")
+        .get("http://49.233.137.79:4000/top/artists")
         .then(response => {
           this.singerList = response.data.artists;
         })

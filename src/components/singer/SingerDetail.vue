@@ -28,10 +28,10 @@ export default {
         return;
       }
       this.$http
-        .get(`http://localhost:3000/artists?id=${id}`)
+        .get(`http://49.233.137.79:4000/artists?id=${id}`)
         .then(response => {
           this.songs.length = 0;
-          this.avatarUrl = `${response.data.artist.picUrl}?param=300x300`;
+          this.avatarUrl = `${response.data.artist[0].picUrl}?param=300x300`;
           response.data.hotSongs.forEach(data => {
             this.songs.push(createSong(data));
           });
