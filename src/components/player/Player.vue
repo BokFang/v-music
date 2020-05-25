@@ -19,10 +19,19 @@
         </header>
         <main class="main" v-show="currentShow === 'cd'">
           <div class="needle">
-            <img src="../../common/images/needle.png" alt />
+            <img
+              src="../../common/images/needle.png"
+              alt="image"
+              :class="needlePlayClass"
+            />
           </div>
           <div class="wrapper">
-            <img :src="currentSong.albumPic" alt />
+            <img
+              :src="currentSong.albumPic"
+              :class="rotateClass"
+              class="rotate"
+              alt
+            />
           </div>
         </main>
         <div class="control">
@@ -34,8 +43,8 @@
             <svg class="icon" aria-hidden="true">
               <use xlink:href="#icon-pre-song" />
             </svg>
-            <svg class="icon play" aria-hidden="true">
-              <use xlink:href="#icon-song-play" />
+            <svg class="icon play" aria-hidden="true" @click="togglePlaying">
+              <use :xlink:href="playIcon" />
             </svg>
             <svg class="icon" aria-hidden="true">
               <use xlink:href="#icon-next-song" />
@@ -48,22 +57,33 @@
       </div>
     </transition>
     <div class="mini-player" v-show="!fullScreen">
-      <div class="picture">
-        <img :src="`${currentSong.albumPic}?param=200x200`" alt="image" />
+      <div class="picture" @click="setFullScreen">
+        <img
+          :src="`${currentSong.albumPic}?param=200x200`"
+          alt="image"
+          :class="rotateClass"
+          class="rotate"
+        />
       </div>
-      <main class="main">
+      <main class="main" @click="setFullScreen">
         <p class="singer-name">{{ currentSong.name }}</p>
         <p class="album">{{ currentSong.album }}</p>
       </main>
       <div class="control">
-        <svg class="icon play" aria-hidden="true">
-          <use xlink:href="#icon-play" />
+        <svg class="icon play" aria-hidden="true" @click="togglePlaying">
+          <use :xlink:href="miniPlayIcon" />
         </svg>
         <svg class="icon playlist" aria-hidden="true">
           <use xlink:href="#icon-playlist-bottom" />
         </svg>
       </div>
     </div>
+    <audio
+      ref="audio"
+      :src="
+        `https://music.163.com/song/media/outer/url?id=${currentSong.id}.mp3`
+      "
+    ></audio>
   </div>
 </template>
 
@@ -78,13 +98,53 @@ export default {
     };
   },
   computed: {
-    ...mapGetters(["fullScreen", "playList", "currentSong", "singer"])
+    playIcon() {
+      return this.playing ? "#icon-pause" : "#icon-song-play";
+    },
+    needlePlayClass() {
+      return this.playing ? "play" : "play pause";
+    },
+    miniPlayIcon() {
+      return this.playing ? "#icon-mini-pause" : "#icon-play";
+    },
+    rotateClass() {
+      return this.playing ? "play" : "play pause";
+    },
+    ...mapGetters([
+      "fullScreen",
+      "playList",
+      "currentSong",
+      "singer",
+      "playing"
+    ])
+  },
+  watch: {
+    currentSong() {
+      this.$nextTick(() => {
+        this.$refs.audio.play();
+      });
+    },
+    playing(newPlaying) {
+      const audio = this.$refs.audio;
+      this.$nextTick(() => {
+        newPlaying ? audio.play() : audio.pause();
+      });
+    }
   },
   methods: {
+    ...mapMutations({
+      _setFullScreen: "SET_FULL_SCREEN",
+      _setPlayingState: "SET_PLAYING_STATE"
+    }),
     back() {
-      this.setFullScreen(false);
+      this._setFullScreen(false);
     },
-    ...mapMutations({ setFullScreen: "SET_FULL_SCREEN" })
+    setFullScreen() {
+      this._setFullScreen(true);
+    },
+    togglePlaying() {
+      this._setPlayingState(!this.playing);
+    }
   }
 };
 </script>
@@ -93,6 +153,42 @@ export default {
 @import "@/common/scss/variable.scss";
 @import "@/common/scss/mixin.scss";
 @include fade;
+//进入播放页面效果
+.normal-enter-active,
+.normal-leave-active {
+  transition: all 0.4s;
+  header,
+  footer {
+    transition: all 0.3s ease-out;
+  }
+}
+.normal-enter,
+.normal-leave-to {
+  opacity: 0;
+  header {
+    transform: translate3d(0, -100px, 0);
+  }
+  footer {
+    transform: translate3d(0, 100px, 0);
+  }
+}
+//播放时的旋转效果
+@keyframes rotate {
+  0% {
+    transform: rotate(0deg);
+  }
+  100% {
+    transform: rotate(360deg);
+  }
+}
+.rotate {
+  &.play {
+    animation: rotate linear 26s infinite;
+  }
+  &.pause {
+    animation-play-state: paused;
+  }
+}
 
 .player {
   .normal-player {
@@ -173,6 +269,12 @@ export default {
           margin-left: 20%;
           transition: all 0.8s;
           transform-origin: 17.4% 12.1%;
+          &.play {
+            transform: none;
+          }
+          &.pause {
+            transform: rotate(-30deg);
+          }
         }
       }
       .wrapper {
