@@ -5,7 +5,8 @@ const state = {
   playList: [], //播放列表
   sequenceList: [], //顺序播放列表
   currentIndex: -1, //当前歌曲页码
-  playMode: "sequence" //默认播放模式为顺序播放
+  playMode: "sequence", //默认播放模式为顺序播放
+  songlistDetial: {} //推荐歌单详情
 };
 
 export default state;

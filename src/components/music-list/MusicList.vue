@@ -10,9 +10,7 @@
         </svg>
       </div>
     </div>
-    <div class="bg-layer" ref="layer"></div>
     <scroll
-      @scroll="listenToScroll"
       :data="songs"
       class="wrapper"
       ref="list"
@@ -67,10 +65,6 @@ export default {
     back() {
       this.$router.go(-1);
     },
-    listenToScroll(pos) {
-      this.scrollY = pos.y;
-      console.log(this.scrollY);
-    },
     selectSong(song, index) {
       this.selectPlay({
         list: this.songs,
@@ -79,12 +73,7 @@ export default {
     },
     ...mapActions(["selectPlay"])
   },
-  watch: {
-    scrollY(newY) {
-      this.$refs.layer.style["transform"] = `translate3d(0,${newY}px,0)`;
-      this.$refs.layer.style["webkitTransform"] = `translate3d(0,${newY}px,0)`;
-    }
-  },
+  watch: {},
   mounted() {
     this.$refs.list.$el.style.top = `${this.$refs.bgImage.clientHeight}px`;
   },
@@ -107,10 +96,10 @@ export default {
   left: 0;
   right: 0;
   bottom: 0;
-  z-index: 100;
-  background-color: $color-background;
+  background: $color-background-d;
 
   .wrapper {
+    background: $color-background;
     position: fixed;
     top: 0;
     bottom: 0;

@@ -5,20 +5,28 @@
         <div class="swiper">
           <swiper ref="mySwiper" :options="swiperOptions">
             <swiper-slide v-for="(item, index) in banners" :key="index">
-              <img :src="item.imageUrl" alt="image" />
+              <img :src="item.pic" alt="image" />
             </swiper-slide>
             <div class="swiper-pagination" slot="pagination"></div>
           </swiper>
         </div>
         <h3>推荐歌单</h3>
         <ul class="playlist">
-          <li v-for="(item, index) in disList" :key="index">
+          <li
+            v-for="(item, index) in disList"
+            :key="index"
+            @click="toSonglistDetail(item.id)"
+          >
             <img v-lazy="item.coverImgUrl" alt="image" />
             <p>{{ item.name }}</p>
           </li>
         </ul>
+        <loading v-show="loading" class="loading"></loading>
       </div>
     </scroll>
+    <transition name="fade">
+      <router-view></router-view>
+    </transition>
   </div>
 </template>
 
@@ -26,6 +34,8 @@
 import { Swiper, SwiperSlide } from "vue-awesome-swiper";
 import "swiper/css/swiper.css";
 import Scroll from "../../base/Scroll";
+import Loading from "../../base/Loading";
+import { mapMutations } from "vuex";
 
 export default {
   name: "Recommand",
@@ -33,6 +43,7 @@ export default {
     return {
       banners: [],
       disList: [],
+      loading: true,
       swiperOptions: {
         pagination: {
           el: ".swiper-pagination"
@@ -45,12 +56,13 @@ export default {
   components: {
     Swiper,
     SwiperSlide,
-    Scroll
+    Scroll,
+    Loading
   },
   methods: {
     getPlaylistData() {
       this.$http
-        .get("http://localhost:3000/banner")
+        .get("http://49.233.137.79:4000/banner?type=1")
         .then(response => {
           this.banners = response.data.banners;
         })
@@ -60,14 +72,24 @@ export default {
     },
     getPlaylistsData() {
       this.$http
-        .get("http://49.233.137.79:4000/top/playlist")
+        .get(
+          "http://49.233.137.79:4000/top/playlist?limit=51&offset=15&order=hot"
+        )
         .then(response => {
           this.disList = response.data.playlists;
+          this.loading = false;
         })
         .catch(error => {
           console.log(error);
         });
-    }
+    },
+    toSonglistDetail(id) {
+      this.$router.push({ path: `/recommand/${id}` });
+      this.setSonglistDetial(id);
+    },
+    ...mapMutations({
+      setSonglistDetial: "SET_SONGLIST_DETIAL"
+    })
   },
   computed: {
     swiper() {
@@ -88,6 +110,13 @@ export default {
 @import "@/common/scss/variable.scss";
 @import "@/common/scss/mixin.scss";
 
+@include fade;
+@include loading;
+.loading {
+  margin-top: 20px;
+  text-align: center;
+  font-size: $font-size-large-x;
+}
 html {
   touch-action: none;
 }

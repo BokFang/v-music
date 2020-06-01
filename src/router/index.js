@@ -7,7 +7,13 @@ const routes = [
   {
     name: "recommand",
     path: "/recommand",
-    component: () => import("../components/recommand/Recommand")
+    component: () => import("../components/recommand/Recommand"),
+    children: [
+      {
+        path: ":id",
+        component: () => import("../components/recommand/SonglistDetail")
+      }
+    ]
   },
   {
     name: "singer",

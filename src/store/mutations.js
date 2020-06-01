@@ -21,6 +21,9 @@ const mutations = {
   },
   [types.SET_CURRENT_INDEX](state, index) {
     state.currentIndex = index;
+  },
+  [types.SET_SONGLIST_DETIAL](state, songlistDetial) {
+    state.songlistDetial = songlistDetial;
   }
 };
 export default mutations;
