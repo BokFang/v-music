@@ -19,14 +19,31 @@
         </header>
         <main class="main" v-show="currentShow === 'cd'">
           <div class="needle">
-            <img src="../../common/images/needle.png" alt="image" :class="needlePlayClass" />
+            <img
+              src="../../common/images/needle.png"
+              alt="image"
+              :class="needlePlayClass"
+            />
           </div>
           <div class="wrapper">
-            <img :src="currentSong.albumPic" :class="rotateClass" class="rotate" alt />
+            <img
+              :src="currentSong.albumPic"
+              :class="rotateClass"
+              class="rotate"
+              alt
+            />
           </div>
         </main>
         <div class="control">
-          <div class="time-bar"></div>
+          <div class="time-bar">
+            <div class="now">{{ format(currentTime) }}</div>
+            <progress-bar
+              :percent="percent"
+              @processChange="onProgressChange"
+              class="progress-bar"
+            ></progress-bar>
+            <div class="end">{{ format(duration) }}</div>
+          </div>
           <div class="button">
             <svg class="icon" aria-hidden="true">
               <use xlink:href="#icon-cycle" />
@@ -76,20 +93,27 @@
       "
       @canplay="ready"
       @error="error"
+      @timeupdate="updateTime"
     ></audio>
   </div>
 </template>
 
 <script>
 import { mapGetters, mapMutations } from "vuex";
+import ProgressBar from "../../base/progress-bar";
 
 export default {
   name: "",
   data() {
     return {
       currentShow: "cd", //当前展示：cd/歌词
-      songReady: "false" //歌曲是否准备好
+      songReady: "false", //歌曲是否准备好
+      currentTime: 0, //歌曲当前播放时间
+      duration: 0 //歌曲播放总时间
     };
+  },
+  components: {
+    ProgressBar
   },
   computed: {
     playIcon() {
@@ -103,6 +127,9 @@ export default {
     },
     rotateClass() {
       return this.playing ? "play" : "play pause";
+    },
+    percent() {
+      return this.currentTime / this.duration;
     },
     ...mapGetters([
       "fullScreen",
@@ -169,7 +196,8 @@ export default {
       }
       this.songReady = false;
     },
-    ready() {
+    ready(e) {
+      this.duration = e.target.duration;
       this.songReady = true;
     },
     error() {
@@ -179,6 +207,26 @@ export default {
       this.songReady = true;
       alert("该歌曲暂时无法播放！");
       this.nextSong();
+    },
+    updateTime(e) {
+      this.currentTime = e.target.currentTime;
+    },
+    format(interval) {
+      interval = interval | 0;
+      const minute = (interval / 60) | 0;
+      const second = this._pad(interval % 60 | 0);
+      return `${minute}:${second}`;
+    },
+    _pad(num, n = 2) {
+      let length = num.toString().length;
+      while (length < n) {
+        num = `0${num}`;
+        length++;
+      }
+      return num;
+    },
+    onProgressChange(precent) {
+      this.$refs.audio.currentTime = this.duration * precent;
     }
   }
 };
@@ -342,6 +390,23 @@ export default {
       display: flex;
       flex-direction: column;
       justify-content: space-between;
+      .time-bar {
+        display: flex;
+        align-items: center;
+        font-size: $font-size-medium;
+        width: 100%;
+        margin-bottom: 20px;
+        .now {
+          width: 18%;
+          text-align: center;
+          color: $color-text-dw;
+        }
+        .end {
+          width: 18%;
+          text-align: center;
+          color: $color-text-dw;
+        }
+      }
       .button {
         padding-bottom: 65px;
         font-size: $font-size-large-x;
