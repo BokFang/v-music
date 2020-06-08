@@ -45,8 +45,8 @@
             <div class="end">{{ format(duration) }}</div>
           </div>
           <div class="button">
-            <svg class="icon" aria-hidden="true">
-              <use xlink:href="#icon-cycle" />
+            <svg class="icon" aria-hidden="true" @click="changeMode">
+              <use :xlink:href="iconMode" />
             </svg>
             <svg class="icon" aria-hidden="true" @click="preSong">
               <use xlink:href="#icon-pre-song" />
@@ -101,6 +101,7 @@
 <script>
 import { mapGetters, mapMutations } from "vuex";
 import ProgressBar from "../../base/progress-bar";
+import { playMode } from "../../common/js/playMode";
 
 export default {
   name: "",
@@ -131,13 +132,21 @@ export default {
     percent() {
       return this.currentTime / this.duration;
     },
+    iconMode() {
+      return this.mode === playMode.sequence
+        ? "#icon-cycle"
+        : this.mode === playMode.loop
+        ? "#icon-loop"
+        : "#icon-random";
+    },
     ...mapGetters([
       "fullScreen",
       "playList",
       "currentSong",
       "singer",
       "playing",
-      "currentIndex"
+      "currentIndex",
+      "mode"
     ])
   },
   watch: {
@@ -157,7 +166,8 @@ export default {
     ...mapMutations({
       _setFullScreen: "SET_FULL_SCREEN",
       _setPlayingState: "SET_PLAYING_STATE",
-      _setCurrentIndex: "SET_CURRENT_INDEX"
+      _setCurrentIndex: "SET_CURRENT_INDEX",
+      _setPlayMode: "SET_PLAY_MODE"
     }),
     back() {
       this._setFullScreen(false);
@@ -227,6 +237,10 @@ export default {
     },
     onProgressChange(precent) {
       this.$refs.audio.currentTime = this.duration * precent;
+    },
+    changeMode() {
+      const mode = (this.mode + 1) % 3;
+      this._setPlayMode(mode);
     }
   }
 };
