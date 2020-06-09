@@ -18,7 +18,7 @@
       :listen-scroll="true"
     >
       <div>
-        <div class="playAll">
+        <div class="playAll" @click="playAll">
           <svg class="icon play" aria-hidden="true">
             <use xlink:href="#icon-play" />
           </svg>
@@ -42,6 +42,7 @@
 import SongList from "../../base/SongList";
 import Scroll from "../../base/Scroll";
 import { mapActions } from "vuex";
+// import Loading from "../../base/Loading";
 
 export default {
   props: {
@@ -54,7 +55,8 @@ export default {
   },
   data() {
     return {
-      scrollY: 0
+      scrollY: 0,
+      loading: true
     };
   },
   components: {
@@ -69,6 +71,12 @@ export default {
       this.selectPlay({
         list: this.songs,
         index
+      });
+    },
+    playAll() {
+      this.selectPlay({
+        list: this.songs,
+        index: 0
       });
     },
     ...mapActions(["selectPlay"])

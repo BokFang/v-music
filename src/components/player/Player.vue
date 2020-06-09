@@ -19,19 +19,10 @@
         </header>
         <main class="main" v-show="currentShow === 'cd'">
           <div class="needle">
-            <img
-              src="../../common/images/needle.png"
-              alt="image"
-              :class="needlePlayClass"
-            />
+            <img src="../../common/images/needle.png" alt="image" :class="needlePlayClass" />
           </div>
           <div class="wrapper">
-            <img
-              :src="currentSong.albumPic"
-              :class="rotateClass"
-              class="rotate"
-              alt
-            />
+            <img :src="currentSong.albumPic" :class="rotateClass" class="rotate" alt />
           </div>
         </main>
         <div class="control">
@@ -94,6 +85,7 @@
       @canplay="ready"
       @error="error"
       @timeupdate="updateTime"
+      @ended="songEnd"
     ></audio>
   </div>
 </template>
@@ -102,6 +94,7 @@
 import { mapGetters, mapMutations } from "vuex";
 import ProgressBar from "../../base/progress-bar";
 import { playMode } from "../../common/js/playMode";
+import shuffle from "../../common/js/utils/shuffle";
 
 export default {
   name: "",
@@ -146,11 +139,13 @@ export default {
       "singer",
       "playing",
       "currentIndex",
-      "mode"
+      "mode",
+      "sequenceList"
     ])
   },
   watch: {
-    currentSong() {
+    currentSong(oldSong, newSong) {
+      if (oldSong.id === newSong.id) return;
       this.$nextTick(() => {
         this.$refs.audio.play();
       });
@@ -167,7 +162,8 @@ export default {
       _setFullScreen: "SET_FULL_SCREEN",
       _setPlayingState: "SET_PLAYING_STATE",
       _setCurrentIndex: "SET_CURRENT_INDEX",
-      _setPlayMode: "SET_PLAY_MODE"
+      _setPlayMode: "SET_PLAY_MODE",
+      _setPlaylist: "SET_PLAYLIST"
     }),
     back() {
       this._setFullScreen(false);
@@ -215,7 +211,7 @@ export default {
         return;
       }
       this.songReady = true;
-      alert("该歌曲暂时无法播放！");
+      alert("抱歉！该歌曲暂时无法播放！");
       this.nextSong();
     },
     updateTime(e) {
@@ -236,11 +232,38 @@ export default {
       return num;
     },
     onProgressChange(precent) {
-      this.$refs.audio.currentTime = this.duration * precent;
+      if (!isNaN(precent)) {
+        this.$refs.audio.currentTime = this.duration * precent;
+      }
     },
     changeMode() {
       const mode = (this.mode + 1) % 3;
       this._setPlayMode(mode);
+      let list = [];
+      if (mode === playMode.random) {
+        list = shuffle(this.sequenceList);
+      } else {
+        list = this.sequenceList;
+      }
+      this.resetCurrentIndex(list);
+      this._setPlaylist(list);
+    },
+    resetCurrentIndex(list) {
+      let index = list.findIndex(item => {
+        return item.id === this.currentSong.id;
+      });
+      this._setCurrentIndex(index);
+    },
+    songEnd() {
+      if (this.mode === playMode.loop) {
+        this.loop();
+      } else {
+        this.nextSong();
+      }
+    },
+    loop() {
+      this.$refs.audio.currentTime = 0;
+      this.$refs.audio.play();
     }
   }
 };
@@ -428,9 +451,9 @@ export default {
         align-items: center;
         justify-content: center;
         svg {
-          padding-right: 10vw;
+          margin-right: 10vw;
           &:last-child {
-            padding-right: 0;
+            margin-right: 0;
           }
         }
         .play {

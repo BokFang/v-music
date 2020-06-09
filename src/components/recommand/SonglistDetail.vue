@@ -23,7 +23,7 @@ export default {
     musicList
   },
   computed: {
-    ...mapGetters(["setSonglistDetail"])
+    ...mapGetters(["songlistDetial"])
   },
   created() {
     this.getSonglistDetail(this.$route.params.id);
