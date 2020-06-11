@@ -17,14 +17,46 @@
             <h2 class="singer-name">{{ currentSong.artist }}</h2>
           </div>
         </header>
-        <main class="main" v-show="currentShow === 'cd'">
-          <div class="needle">
-            <img src="../../common/images/needle.png" alt="image" :class="needlePlayClass" />
-          </div>
-          <div class="wrapper">
-            <img :src="currentSong.albumPic" :class="rotateClass" class="rotate" alt />
-          </div>
-        </main>
+        <transition name="fade">
+          <main class="main" v-show="currentShow === 'cd'">
+            <div class="needle">
+              <img
+                src="../../common/images/needle.png"
+                alt="image"
+                :class="needlePlayClass"
+              />
+            </div>
+            <div class="wrapper" @click="showLyric">
+              <img
+                :src="currentSong.albumPic"
+                :class="rotateClass"
+                class="rotate"
+                alt
+              />
+            </div>
+          </main>
+        </transition>
+        <transition name="fade">
+          <scroll
+            class="lyric"
+            :probe-type="3"
+            :data="lyricData"
+            v-if="currentLyric"
+            v-show="currentShow === 'lyric'"
+          >
+            <main class="lyricWrapper" @click="showCD">
+              <p
+                ref="lyricLine"
+                class="lyric-text"
+                :class="{ active: currentLineNum === index }"
+                v-for="(line, index) in currentLyric.lines"
+                :key="index"
+              >
+                {{ line.txt }}
+              </p>
+            </main>
+          </scroll>
+        </transition>
         <div class="control">
           <div class="time-bar">
             <div class="now">{{ format(currentTime) }}</div>
@@ -95,6 +127,8 @@ import { mapGetters, mapMutations } from "vuex";
 import ProgressBar from "../../base/progress-bar";
 import { playMode } from "../../common/js/playMode";
 import shuffle from "../../common/js/utils/shuffle";
+import Lyric from "lyric-parser";
+import scroll from "../../base/Scroll";
 
 export default {
   name: "",
@@ -103,11 +137,14 @@ export default {
       currentShow: "cd", //当前展示：cd/歌词
       songReady: "false", //歌曲是否准备好
       currentTime: 0, //歌曲当前播放时间
-      duration: 0 //歌曲播放总时间
+      duration: 0, //歌曲播放总时间
+      currentLyric: null,
+      currentLineNum: 0
     };
   },
   components: {
-    ProgressBar
+    ProgressBar,
+    scroll
   },
   computed: {
     playIcon() {
@@ -132,6 +169,9 @@ export default {
         ? "#icon-loop"
         : "#icon-random";
     },
+    lyricData() {
+      return this.currentLyric && this.currentLyric.lines;
+    },
     ...mapGetters([
       "fullScreen",
       "playList",
@@ -148,6 +188,7 @@ export default {
       if (oldSong.id === newSong.id) return;
       this.$nextTick(() => {
         this.$refs.audio.play();
+        this._getLyric();
       });
     },
     playing(newPlaying) {
@@ -264,6 +305,31 @@ export default {
     loop() {
       this.$refs.audio.currentTime = 0;
       this.$refs.audio.play();
+    },
+    _getLyric() {
+      this.$http
+        .get(`http://49.233.137.79:4000/lyric?id=${this.currentSong.id}`)
+        .then(response => {
+          const lyric = response.data.lrc.lyric;
+          this.currentLyric = new Lyric(lyric, this.lyricHandler);
+          if (this.playing) {
+            this.currentLyric.play();
+          }
+        })
+        .catch(error => {
+          this.currentLyric = new Lyric("[00:00.000] 该歌曲暂无歌词");
+          this.activeLine = 0;
+          console.log(error);
+        });
+    },
+    lyricHandler({lineNum}) {
+      this.currentLineNum = lineNum;
+    },
+    showLyric() {
+      this.currentShow = "lyric";
+    },
+    showCD() {
+      this.currentShow = "cd";
     }
   }
 };
@@ -415,6 +481,29 @@ export default {
           width: 23vh;
           border-radius: 50%;
           border: 5vh solid #212229;
+        }
+      }
+    }
+    .lyric {
+      position: absolute;
+      top: 14vh;
+      overflow: hidden;
+      bottom: 14vh;
+      width: 100%;
+      .lyricWrapper {
+        p {
+          font-size: $font-size-medium-m;
+          color: $color-text-dw;
+          height: 7.2vh;
+          text-align: center;
+          transition: all 0.5s;
+          width: 80%;
+          margin: 0 auto;
+          line-height: 1.4;
+          &.active {
+            color: $color-text-w;
+            font-size: $font-size-medium-x;
+          }
         }
       }
     }
