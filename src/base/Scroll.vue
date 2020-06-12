@@ -8,11 +8,11 @@
 import BScroll from "@better-scroll/core";
 
 export default {
-  name: "Scroll",
+  name: "NScroll",
   props: {
     probeType: {
       type: Number,
-      default: 3
+      default: 1
     },
     click: {
       type: Boolean,
@@ -22,30 +22,35 @@ export default {
       type: Array,
       required: true,
       default: null
+    },
+    bounce: {
+      type: Boolean,
+      default: true
     }
   },
   mounted() {
     setTimeout(() => {
-      this._initScroll();
+      this.initScroll();
     }, 60);
   },
   methods: {
-    _initScroll() {
-      if (!this.$refs.wrapper) {
-        return;
-      }
+    initScroll() {
       this.scroll = new BScroll(this.$refs.wrapper, {
-        probeType: this.probeType,
-        click: true,
         scrollY: true,
-        bounce: true
+        click: true,
+        probeType: this.probeType,
+        bounce: this.bounce
       });
+      this.emitScrollEvent();
     },
-    enable() {
-      this.scroll && this.scroll.enable();
-    },
-    disable() {
-      this.scroll && this.scroll.disable();
+    emitScrollEvent() {
+      let scrollHandler = e => {
+        this.$emit("scroll", e, {
+          maxScrollY: this.scroll.maxScrollY,
+          maxScrollX: this.scroll.maxScrollX
+        });
+      };
+      this.scroll.on("scroll", scrollHandler);
     },
     refresh() {
       this.scroll && this.scroll.refresh();

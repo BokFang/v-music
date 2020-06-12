@@ -20,19 +20,10 @@
         <transition name="fade">
           <main class="main" v-show="currentShow === 'cd'">
             <div class="needle">
-              <img
-                src="../../common/images/needle.png"
-                alt="image"
-                :class="needlePlayClass"
-              />
+              <img src="../../common/images/needle.png" alt="image" :class="needlePlayClass" />
             </div>
             <div class="wrapper" @click="showLyric">
-              <img
-                :src="currentSong.albumPic"
-                :class="rotateClass"
-                class="rotate"
-                alt
-              />
+              <img :src="currentSong.albumPic" :class="rotateClass" class="rotate" alt />
             </div>
           </main>
         </transition>
@@ -43,8 +34,9 @@
             :data="lyricData"
             v-if="currentLyric"
             v-show="currentShow === 'lyric'"
+            ref="lyricList"
           >
-            <main class="lyricWrapper" @click="showCD">
+            <div class="lyricWrapper" @click="showCD">
               <p
                 ref="lyricLine"
                 class="lyric-text"
@@ -54,17 +46,13 @@
               >
                 {{ line.txt }}
               </p>
-            </main>
+            </div>
           </scroll>
         </transition>
         <div class="control">
           <div class="time-bar">
             <div class="now">{{ format(currentTime) }}</div>
-            <progress-bar
-              :percent="percent"
-              @processChange="onProgressChange"
-              class="progress-bar"
-            ></progress-bar>
+            <progress-bar :percent="percent" @processChange="onProgressChange" class="progress-bar"></progress-bar>
             <div class="end">{{ format(duration) }}</div>
           </div>
           <div class="button">
@@ -213,6 +201,9 @@ export default {
       this._setFullScreen(true);
     },
     togglePlaying() {
+      if (this.currentLyric) {
+        this.currentLyric.togglePlay();
+      }
       this._setPlayingState(!this.playing);
     },
     preSong() {
@@ -273,8 +264,12 @@ export default {
       return num;
     },
     onProgressChange(precent) {
+      const currentTime = this.duration * precent;
       if (!isNaN(precent)) {
         this.$refs.audio.currentTime = this.duration * precent;
+      }
+      if (this.currentLyric) {
+        this.currentLyric.seek(currentTime * 1000);
       }
     },
     changeMode() {
@@ -303,6 +298,9 @@ export default {
       }
     },
     loop() {
+      if (this.currentLyric) {
+        this.currentLyric.seek(0);
+      }
       this.$refs.audio.currentTime = 0;
       this.$refs.audio.play();
     },
@@ -318,15 +316,26 @@ export default {
         })
         .catch(error => {
           this.currentLyric = new Lyric("[00:00.000] 该歌曲暂无歌词");
-          this.activeLine = 0;
+          this.currentLineNum = 0;
           console.log(error);
         });
     },
-    lyricHandler({lineNum}) {
+    lyricHandler({ lineNum }) {
       this.currentLineNum = lineNum;
+      if (lineNum > 5) {
+        let lineEl = this.$refs.lyricLine[lineNum - 5];
+        this.$refs.lyricList.scroll.scrollToElement(lineEl, 1000);
+      } else {
+        this.$refs.lyricList &&
+          this.$refs.lyricList.scroll &&
+          this.$refs.lyricList.scroll.scrollTo(0, 0, 1000);
+      }
     },
     showLyric() {
       this.currentShow = "lyric";
+      this.$nextTick(() => {
+        this.$refs.lyricList.refresh();
+      });
     },
     showCD() {
       this.currentShow = "cd";
