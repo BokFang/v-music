@@ -43,6 +43,7 @@
             :data="lyricData"
             v-if="currentLyric"
             v-show="currentShow === 'lyric'"
+            ref="lyricList"
           >
             <main class="lyricWrapper" @click="showCD">
               <p
@@ -186,6 +187,9 @@ export default {
   watch: {
     currentSong(oldSong, newSong) {
       if (oldSong.id === newSong.id) return;
+      if (this.currentLyric) {
+        this.currentLyric.stop();
+      }
       this.$nextTick(() => {
         this.$refs.audio.play();
         this._getLyric();
@@ -213,6 +217,9 @@ export default {
       this._setFullScreen(true);
     },
     togglePlaying() {
+      if (this.currentLyric) {
+        this.currentLyric.togglePlay();
+      }
       this._setPlayingState(!this.playing);
     },
     preSong() {
@@ -273,8 +280,12 @@ export default {
       return num;
     },
     onProgressChange(precent) {
+      const currentTime = this.duration * precent;
       if (!isNaN(precent)) {
-        this.$refs.audio.currentTime = this.duration * precent;
+        this.$refs.audio.currentTime = currentTime;
+      }
+      if (this.currentLyric) {
+        this.currentLyric.seek(currentTime * 1000);
       }
     },
     changeMode() {
@@ -304,7 +315,14 @@ export default {
     },
     loop() {
       this.$refs.audio.currentTime = 0;
-      this.$refs.audio.play();
+      if (!this.playing) {
+        return;
+      } else {
+        this.$refs.audio.play();
+      }
+      if (this.currentLyric) {
+        this.currentLyric.seek(0);
+      }
     },
     _getLyric() {
       this.$http
@@ -318,12 +336,20 @@ export default {
         })
         .catch(error => {
           this.currentLyric = new Lyric("[00:00.000] 该歌曲暂无歌词");
-          this.activeLine = 0;
+          this.currentLineNum = 0;
           console.log(error);
         });
     },
-    lyricHandler({lineNum}) {
+    lyricHandler({ lineNum }) {
       this.currentLineNum = lineNum;
+      if (lineNum > 5) {
+        let lineEl = this.$refs.lyricLine[lineNum - 5];
+        this.$refs.lyricList.scroll.scrollToElement(lineEl, 1000);
+      } else {
+        this.$refs.lyricList &&
+          this.$refs.lyricList.scroll &&
+          this.$refs.lyricList.scroll.scrollTo(0, 0, 1000);
+      }
     },
     showLyric() {
       this.currentShow = "lyric";
