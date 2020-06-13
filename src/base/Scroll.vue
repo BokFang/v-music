@@ -50,7 +50,6 @@ export default {
           maxScrollX: this.scroll.maxScrollX
         });
       };
-
       this.scroll.on("scroll", scrollHandler);
     },
     refresh() {

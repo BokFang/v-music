@@ -20,19 +20,10 @@
         <transition name="fade">
           <main class="main" v-show="currentShow === 'cd'">
             <div class="needle">
-              <img
-                src="../../common/images/needle.png"
-                alt="image"
-                :class="needlePlayClass"
-              />
+              <img src="../../common/images/needle.png" alt="image" :class="needlePlayClass" />
             </div>
             <div class="wrapper" @click="showLyric">
-              <img
-                :src="currentSong.albumPic"
-                :class="rotateClass"
-                class="rotate"
-                alt
-              />
+              <img :src="currentSong.albumPic" :class="rotateClass" class="rotate" alt />
             </div>
           </main>
         </transition>
@@ -45,27 +36,21 @@
             v-show="currentShow === 'lyric'"
             ref="lyricList"
           >
-            <main class="lyricWrapper" @click="showCD">
+            <div class="lyricWrapper" @click="showCD">
               <p
                 ref="lyricLine"
                 class="lyric-text"
                 :class="{ active: currentLineNum === index }"
                 v-for="(line, index) in currentLyric.lines"
                 :key="index"
-              >
-                {{ line.txt }}
-              </p>
-            </main>
+              >{{ line.txt }}</p>
+            </div>
           </scroll>
         </transition>
         <div class="control">
           <div class="time-bar">
             <div class="now">{{ format(currentTime) }}</div>
-            <progress-bar
-              :percent="percent"
-              @processChange="onProgressChange"
-              class="progress-bar"
-            ></progress-bar>
+            <progress-bar :percent="percent" @processChange="onProgressChange" class="progress-bar"></progress-bar>
             <div class="end">{{ format(duration) }}</div>
           </div>
           <div class="button">
@@ -286,6 +271,9 @@ export default {
       }
       if (this.currentLyric) {
         this.currentLyric.seek(currentTime * 1000);
+        if (!this.playing) {
+          this.currentLyric.stop();
+        }
       }
     },
     changeMode() {
@@ -314,6 +302,9 @@ export default {
       }
     },
     loop() {
+      if (this.currentLyric) {
+        this.currentLyric.seek(0);
+      }
       this.$refs.audio.currentTime = 0;
       if (!this.playing) {
         return;
@@ -353,6 +344,9 @@ export default {
     },
     showLyric() {
       this.currentShow = "lyric";
+      this.$nextTick(() => {
+        this.$refs.lyricList.refresh();
+      });
     },
     showCD() {
       this.currentShow = "cd";

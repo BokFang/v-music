@@ -33,6 +33,7 @@
           :artist="song.artist"
           :album="song.album"
         ></song-list>
+        <loading v-show="!songs.length" class="loading"></loading>
       </div>
     </scroll>
   </div>
@@ -42,7 +43,7 @@
 import SongList from "../../base/SongList";
 import Scroll from "../../base/Scroll";
 import { mapActions } from "vuex";
-// import Loading from "../../base/Loading";
+import Loading from "../../base/Loading";
 
 export default {
   props: {
@@ -55,13 +56,13 @@ export default {
   },
   data() {
     return {
-      scrollY: 0,
-      loading: true
+      scrollY: 0
     };
   },
   components: {
     SongList,
-    Scroll
+    Scroll,
+    Loading
   },
   methods: {
     back() {
@@ -96,7 +97,13 @@ export default {
 <style lang="scss" scoped>
 @import "@/common/scss/variable.scss";
 @import "@/common/scss/mixin.scss";
+@include loading;
 
+.loading {
+  margin-top: 20px;
+  text-align: center;
+  font-size: $font-size-large-x;
+}
 .music-list {
   position: fixed;
   z-index: 100;

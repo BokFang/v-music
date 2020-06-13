@@ -9,7 +9,7 @@
       </div>
     </header>
     <div class="singer-list">
-      <scroll class="wrapper" :data="singerList">
+      <scroll class="wrapper" :data="singerList" @scroll="listenToScroll">
         <ul>
           <li
             v-for="(item, index) in singerList"
@@ -22,6 +22,7 @@
             </div>
             <span class="follow">+ 关注</span>
           </li>
+          <loading class="loading" v-show="loading"></loading>
         </ul>
       </scroll>
     </div>
@@ -33,23 +34,34 @@
 
 <script>
 import { mapMutations } from "vuex";
+import Loading from "../../base/Loading";
 import Scroll from "../../base/Scroll";
 
 export default {
   data() {
     return {
-      singerList: []
+      singerList: [],
+      loading: true,
+      allowToLoad: true,
+      listOffset: 0
     };
   },
   components: {
-    Scroll
+    Scroll,
+    Loading
   },
   methods: {
-    getSingerList() {
+    getSingerList(limit) {
+      let curOffset = this.listOffset; // 请求数据偏移值
+      this.listOffset += limit;
       this.$http
-        .get("http://49.233.137.79:4000/top/artists")
+        .get(
+          `http://49.233.137.79:4000/top/artists?offset=${curOffset}&limit=${limit}`
+        )
         .then(response => {
-          this.singerList = response.data.artists;
+          this.singerList.push(...response.data.artists);
+          this.loading = false;
+          this.allowToLoad = true;
         })
         .catch(error => {
           console.log(error);
@@ -61,12 +73,20 @@ export default {
       });
       this.setSinger(singer);
     },
+    listenToScroll({ y: posY } = {}, { maxScrollY } = {}) {
+      // console.log(posY,maxScrollY)
+      if (posY < maxScrollY + 20 && this.allowToLoad) {
+        this.allowToLoad = false;
+        this.loading = true;
+        this.getSingerList(12);
+      }
+    },
     ...mapMutations({
       setSinger: "SET_SINGER"
     })
   },
-  beforeMount() {
-    this.getSingerList();
+  mounted() {
+    this.getSingerList(12);
   }
 };
 </script>
@@ -76,7 +96,13 @@ export default {
 @import "@/common/scss/mixin.scss";
 
 @include slide;
+@include loading;
 
+.loading {
+  margin-top: 20px;
+  text-align: center;
+  font-size: $font-size-large-x;
+}
 header {
   height: 10vh;
   margin-bottom: 28px;

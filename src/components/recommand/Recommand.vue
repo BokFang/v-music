@@ -1,6 +1,11 @@
 <template>
   <div id="recommand" class="recommand">
-    <scroll class="wrapper" :data="disList" :probe-type="3">
+    <scroll
+      class="wrapper"
+      :data="disList"
+      :probe-type="3"
+      @scroll="listenToScroll"
+    >
       <div class="content" ref="content">
         <div class="swiper">
           <swiper ref="mySwiper" :options="swiperOptions">
@@ -43,7 +48,9 @@ export default {
     return {
       banners: [],
       disList: [],
+      listOffset: 0,
       loading: true,
+      allowToLoad: true,
       swiperOptions: {
         pagination: {
           el: ".swiper-pagination"
@@ -60,7 +67,7 @@ export default {
     Loading
   },
   methods: {
-    getPlaylistData() {
+    getBannerData() {
       this.$http
         .get("http://49.233.137.79:4000/banner?type=1")
         .then(response => {
@@ -70,13 +77,16 @@ export default {
           console.log(error);
         });
     },
-    getPlaylistsData() {
+    getPlaylistsData(limit) {
+      let curOffset = this.listOffset;
+      this.listOffset += limit;
       this.$http
         .get(
-          "http://49.233.137.79:4000/top/playlist?limit=51&offset=15&order=hot"
+          `http://49.233.137.79:4000/top/playlist?limit=${limit}&offset=${curOffset}&order=hot`
         )
         .then(response => {
-          this.disList = response.data.playlists;
+          this.disList.push(...response.data.playlists);
+          this.allowToLoad = true;
           this.loading = false;
         })
         .catch(error => {
@@ -86,6 +96,13 @@ export default {
     toSonglistDetail(id) {
       this.$router.push({ path: `/recommand/${id}` });
       this.setSonglistDetial(id);
+    },
+    listenToScroll({ y: posY } = {}, { maxScrollY } = {}) {
+      if (posY < maxScrollY + 20 && this.allowToLoad) {
+        this.allowToLoad = false;
+        this.loading = true;
+        this.getPlaylistsData(15);
+      }
     },
     ...mapMutations({
       setSonglistDetial: "SET_SONGLIST_DETIAL"
@@ -98,10 +115,8 @@ export default {
   },
   mounted() {
     this.swiper.slideTo(3, 1000, false);
-  },
-  created() {
-    this.getPlaylistData();
-    this.getPlaylistsData();
+    this.getBannerData();
+    this.getPlaylistsData(15);
   }
 };
 </script>
